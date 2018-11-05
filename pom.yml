@@ -1,0 +1,23 @@
+modelVersion: 4.0.0
+
+parent:
+  groupId: io.skullabs.boilerplates
+  artifactId: java-8
+  version: 1.0.0
+
+artifactId: class-generator
+groupId: io.skullabs.apt
+version: 0.1.0.Final
+
+properties:
+ version.lombok: "1.18.4"
+ versions.mustache: "0.9.4"
+ versions.compile-testing: "0.10"
+
+url: "https://github.com/Skullabs/class-generator"
+description: "A simplified class generator"
+
+dependencies:
+ - { groupId: com.github.spullara.mustache.java, artifactId: compiler, version: "${versions.mustache}" }
+ - { groupId: com.google.testing.compile, artifactId: compile-testing, version: "${versions.compile-testing}", scope: test }
+

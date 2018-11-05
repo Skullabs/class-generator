@@ -1,0 +1,23 @@
+package {{type.packageName}};
+
+class {{type.simpleName}}Delegated {
+
+    final {{type.canonicalName}} target = new {{type.canonicalName}}();
+
+    {{#type.fields}}
+    {{#annotations}}{{.}}{{/annotations}}
+    {{type}} {{name}}(){
+        return target.{{name}};
+    }
+
+    {{/type.fields}}
+    {{#type.methods}}
+    {{^constructor}}
+    {{#annotations}}{{.}}{{/annotations}}
+    {{type}} {{name}}(){
+        return target.{{name}}();
+    }
+    {{/constructor}}
+
+    {{/type.methods}}
+}
