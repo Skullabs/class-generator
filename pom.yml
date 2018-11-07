@@ -7,7 +7,7 @@ parent:
 
 artifactId: class-generator
 groupId: io.skullabs.apt
-version: 0.1.0.Final
+version: 0.2.0.Final
 
 properties:
  version.lombok: "1.18.4"
