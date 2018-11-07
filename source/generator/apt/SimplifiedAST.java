@@ -1,10 +1,12 @@
 package generator.apt;
 
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.Value;
+
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
-
-import lombok.*;
 
 /**
  *
@@ -14,7 +16,7 @@ public interface SimplifiedAST {
     AtomicInteger methodCounter = new AtomicInteger(0);
 
     @Data
-    class Type {
+    class Type extends Element {
         String canonicalName;
         List<Element> fields = new ArrayList<>();
         List<Method> methods = new ArrayList<>();

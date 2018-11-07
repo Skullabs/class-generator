@@ -12,29 +12,11 @@ import java.io.StringWriter;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 class ClassGeneratorTest {
 
     static final String ANNOTATED_CLASS = "tests/generator/apt/samples/AnnotatedClass.java";
-
-    @DisplayName("Should be able to store parameters")
-    @Test void set(){
-        val generator = ClassGenerator.with("delegate-class.mustache");
-        generator.set("data", new SimplifiedAST.Type() );
-
-        val data = generator.params.get("data");
-        assertEquals( new SimplifiedAST.Type(), data );
-    }
-
-    @DisplayName("Parameters with no keys will be stored in the 'type' key")
-    @Test void set1(){
-        val generator = ClassGenerator.with("delegate-class.mustache");
-        generator.set(new SimplifiedAST.Type() );
-
-        val data = generator.params.get("type");
-        assertEquals( new SimplifiedAST.Type(), data );
-    }
 
     @SneakyThrows
     @DisplayName("Should be able to generate a class filled with the expected parameters")
@@ -45,8 +27,7 @@ class ClassGeneratorTest {
         val generatedClass = new StringWriter();
 
         ClassGenerator.with("delegate-class.mustache")
-                .set( readMethodsAndFieldsIgnoredInTheAnnotatedClass() )
-                .write( generatedClass );
+                .write( generatedClass, readMethodsAndFieldsIgnoredInTheAnnotatedClass() );
 
         assertEquals( expectedClass, generatedClass.toString() );
     }

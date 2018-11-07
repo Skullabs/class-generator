@@ -1,17 +1,17 @@
-package {{type.packageName}};
+package {{packageName}};
 
-class {{type.simpleName}}Delegated {
+class {{simpleName}}Delegated {
 
-    final {{type.canonicalName}} target = new {{type.canonicalName}}();
+    final {{canonicalName}} target = new {{canonicalName}}();
 
-    {{#type.fields}}
+    {{#fields}}
     {{#annotations}}{{.}}{{/annotations}}
     {{type}} {{name}}(){
         return target.{{name}};
     }
 
-    {{/type.fields}}
-    {{#type.methods}}
+    {{/fields}}
+    {{#methods}}
     {{^constructor}}
     {{#annotations}}{{.}}{{/annotations}}
     {{type}} {{name}}(){
@@ -19,5 +19,5 @@ class {{type.simpleName}}Delegated {
     }
     {{/constructor}}
 
-    {{/type.methods}}
+    {{/methods}}
 }
