@@ -19,11 +19,13 @@ public abstract class SimplifiedAbstractProcessor extends AbstractProcessor {
     final SimplifiedASTContext context = new SimplifiedASTContext();
     final List<Class<? extends Annotation>> fieldAnnotations;
     final List<Class<? extends Annotation>> methodAnnotations;
+    final List<Class<? extends Annotation>> typeAnnotations;
 
     @Override
     public boolean process(Set<? extends TypeElement> set, RoundEnvironment round) {
         fieldAnnotations.forEach(ann -> memorizeFieldsAnnotatedWith(round, ann));
         methodAnnotations.forEach(ann -> memorizeMethodsAnnotatedWith(round, ann));
+        typeAnnotations.forEach(ann -> memorizeTypesAnnotatedWith(round, ann));
 
         if ( !context.isEmpty() )
             process(context.getTypes());
@@ -40,6 +42,13 @@ public abstract class SimplifiedAbstractProcessor extends AbstractProcessor {
                 e -> context.memorizeMethod( (ExecutableElement) e ));
     }
 
+    private void memorizeTypesAnnotatedWith( RoundEnvironment round, Class<? extends Annotation> annotation) {
+        memorizeElementsAnnotatedWith( round, annotation, ElementKind.CLASS,
+                e -> memorizeTypeAndItsMembers( (TypeElement) e ));
+        memorizeElementsAnnotatedWith( round, annotation, ElementKind.INTERFACE,
+                e -> memorizeTypeAndItsMembers( (TypeElement) e ));
+    }
+
     @SuppressWarnings("unchecked")
     private void memorizeElementsAnnotatedWith(
         RoundEnvironment round,
@@ -52,6 +61,15 @@ public abstract class SimplifiedAbstractProcessor extends AbstractProcessor {
             for ( val element : elements )
                 if ( expectedElementKind.equals( element.getKind() ) )
                     callback.accept(element);
+        }
+    }
+
+    private void memorizeTypeAndItsMembers( TypeElement e ){
+        for (Element element : e.getEnclosedElements()) {
+            if ( element.getKind().equals(ElementKind.FIELD) )
+                context.memorizeField( (VariableElement)element );
+            else if ( element.getKind().equals(ElementKind.METHOD) )
+                context.memorizeMethod( (ExecutableElement) element );
         }
     }
 

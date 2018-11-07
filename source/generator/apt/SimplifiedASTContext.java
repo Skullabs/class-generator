@@ -137,6 +137,7 @@ public class SimplifiedASTContext {
         val newType = new SimplifiedAST.Type()
                 .setCanonicalName(canonicalName)
                 .setMethods(new ArrayList<>());
+        newType.setAnnotations( loadAnnotations(type, newType) );
         memorizeConstructors(newType, type);
         return newType;
     }

@@ -25,6 +25,7 @@ public class IgnoredProcessor extends SimplifiedAbstractProcessor {
     public IgnoredProcessor() {
         super(
             singletonList(Ignored.class),
+            singletonList(Ignored.class),
             singletonList(Ignored.class)
         );
     }
