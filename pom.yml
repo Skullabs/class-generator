@@ -20,3 +20,12 @@ description: "A simplified class generator"
 dependencies:
  - { groupId: com.github.spullara.mustache.java, artifactId: compiler, version: "${versions.mustache}" }
  - { groupId: com.google.testing.compile, artifactId: compile-testing, version: "${versions.compile-testing}", scope: test }
+
+build:
+  plugins:
+   - groupId: org.apache.maven.plugins
+     artifactId: maven-javadoc-plugin
+     version: 3.1.0
+     configuration:
+       source: "8"
+

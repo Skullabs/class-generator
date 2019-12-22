@@ -7,27 +7,20 @@ import javax.lang.model.element.Element;
 import generator.apt.SimplifiedAST.*;
 import lombok.val;
 
-/**
- *
- */
 public class SimplifiedASTContext {
 
     public Map<String, Type> cachedTypes = new HashMap<>();
 
     /**
-     * Checks if any method, field or class have already been memorized.
-     *
-     * @return
+     * @return true if any method, field or class have already been memorized.
      */
     public boolean isEmpty() {
         return cachedTypes.isEmpty();
     }
 
     /**
-     * Returns all saved types in this context. Note that every invocation
+     * @return all saved types in this context. Note that every invocation
      * of this method will flush its content.
-     *
-     * @return
      */
     public Collection<Type> getTypes() {
         val types = new ArrayList<Type>(cachedTypes.values());
@@ -38,7 +31,7 @@ public class SimplifiedASTContext {
     /**
      * Memorize a field for further usage.
      *
-     * @param variable
+     * @param variable to be memorized
      */
     public void memorizeField(VariableElement variable){
         getCachedType( variable )
@@ -56,7 +49,7 @@ public class SimplifiedASTContext {
     /**
      * Memorize a method for further usage.
      *
-     * @param method
+     * @param method to be memorized
      */
     public void memorizeMethod(ExecutableElement method) {
         getCachedType(method)
