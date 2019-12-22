@@ -3,7 +3,9 @@ package generator.apt;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.Value;
+import lombok.val;
 
+import javax.lang.model.SourceVersion;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
@@ -17,6 +19,8 @@ public interface SimplifiedAST {
 
     @Data
     class Type extends Element {
+        final String jdkGeneratedAnnotation = identifyGeneratedAnnotation();
+
         String canonicalName;
         List<Element> fields = new ArrayList<>();
         List<Method> methods = new ArrayList<>();
@@ -35,6 +39,14 @@ public interface SimplifiedAST {
 
         public WrappedDataIterable getMethodsIterable() {
             return new WrappedDataIterable(methods.subList(1, methods.size()));
+        }
+
+        private String identifyGeneratedAnnotation() {
+            val versionWithOldGeneratedAnnotation = SourceVersion.RELEASE_8.ordinal();
+            if (SourceVersion.latestSupported().ordinal() > versionWithOldGeneratedAnnotation)
+                return "javax.annotation.processing.Generated";
+            else
+                return "javax.annotation.Generated";
         }
 
         public String toString() {

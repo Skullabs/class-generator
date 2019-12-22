@@ -4,9 +4,12 @@ import lombok.RequiredArgsConstructor;
 import lombok.val;
 
 import javax.annotation.processing.AbstractProcessor;
+import javax.annotation.processing.ProcessingEnvironment;
 import javax.annotation.processing.RoundEnvironment;
 import javax.lang.model.SourceVersion;
 import javax.lang.model.element.*;
+import javax.tools.Diagnostic;
+import javax.tools.StandardLocation;
 import java.lang.annotation.Annotation;
 import java.util.Collection;
 import java.util.List;
@@ -20,6 +23,14 @@ public abstract class SimplifiedAbstractProcessor extends AbstractProcessor {
     final List<Class<? extends Annotation>> fieldAnnotations;
     final List<Class<? extends Annotation>> methodAnnotations;
     final List<Class<? extends Annotation>> typeAnnotations;
+
+    protected ResourceLocator resourceLocator;
+
+    @Override
+    public synchronized void init(ProcessingEnvironment processingEnv) {
+        super.init(processingEnv);
+        resourceLocator = new ResourceLocator(processingEnv, StandardLocation.CLASS_OUTPUT);
+    }
 
     @Override
     public boolean process(Set<? extends TypeElement> set, RoundEnvironment round) {
@@ -49,7 +60,6 @@ public abstract class SimplifiedAbstractProcessor extends AbstractProcessor {
                 e -> memorizeTypeAndItsMembers( (TypeElement) e ));
     }
 
-    @SuppressWarnings("unchecked")
     private void memorizeElementsAnnotatedWith(
         RoundEnvironment round,
         Class<? extends Annotation> annotation,
@@ -84,5 +94,17 @@ public abstract class SimplifiedAbstractProcessor extends AbstractProcessor {
     @Override
     public SourceVersion getSupportedSourceVersion() {
         return SourceVersion.values()[SourceVersion.values().length - 1];
+    }
+
+    protected void info(final String msg) {
+        processingEnv.getMessager().printMessage( Diagnostic.Kind.OTHER, msg );
+    }
+
+    protected void warn(final String msg) {
+        processingEnv.getMessager().printMessage( Diagnostic.Kind.WARNING, msg );
+    }
+
+    protected void error(final String msg) {
+        processingEnv.getMessager().printMessage( Diagnostic.Kind.ERROR, msg );
     }
 }

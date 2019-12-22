@@ -101,6 +101,20 @@ public class SimplifiedAPTRunner {
             for (final Diagnostic<? extends JavaFileObject> diagnostic : getDiagnostics())
                 writer.accept(diagnostic);
 		}
+
+		public void failInCaseOfError() {
+            failInCaseOfError(d -> {
+				System.out.println(d);
+				if (d.getKind().equals(Diagnostic.Kind.ERROR)) {
+					throw new IllegalStateException(d.getMessage(Locale.getDefault()));
+				}
+			});
+		}
+
+		public void failInCaseOfError( Consumer<Diagnostic<? extends JavaFileObject>> writer ) {
+            for (final Diagnostic<? extends JavaFileObject> diagnostic : getDiagnostics())
+                writer.accept(diagnostic);
+		}
 	}
 
 	static public class LocalJavaSource extends SimpleJavaFileObject {

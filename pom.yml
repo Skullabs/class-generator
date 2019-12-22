@@ -7,12 +7,12 @@ parent:
 
 artifactId: class-generator
 groupId: io.skullabs.apt
-version: 0.2.0.Final
+version: 0.3.0
 
 properties:
- version.lombok: "1.18.4"
+ version.lombok: "1.18.10"
  versions.mustache: "0.9.4"
- versions.compile-testing: "0.10"
+ versions.compile-testing: "0.18"
 
 url: "https://github.com/Skullabs/class-generator"
 description: "A simplified class generator"
@@ -20,4 +20,3 @@ description: "A simplified class generator"
 dependencies:
  - { groupId: com.github.spullara.mustache.java, artifactId: compiler, version: "${versions.mustache}" }
  - { groupId: com.google.testing.compile, artifactId: compile-testing, version: "${versions.compile-testing}", scope: test }
-
