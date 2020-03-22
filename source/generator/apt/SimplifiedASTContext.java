@@ -1,11 +1,17 @@
 package generator.apt;
 
 import java.util.*;
+import java.util.stream.Collectors;
 import javax.lang.model.element.*;
 import javax.lang.model.element.Element;
+import javax.lang.model.type.DeclaredType;
+import javax.lang.model.type.TypeKind;
 
 import generator.apt.SimplifiedAST.*;
-import lombok.val;
+import lombok.*;
+
+import static javax.lang.model.element.Modifier.ABSTRACT;
+import static javax.lang.model.element.Modifier.FINAL;
 
 public class SimplifiedASTContext {
 
@@ -57,7 +63,7 @@ public class SimplifiedASTContext {
     }
 
     private Method createMethod(ExecutableElement method) {
-        val newParameters = readMethodParameters(method);
+        val newParameters = extractMethodParameters(method);
         val name = method.getSimpleName().toString();
         val generatedMethod = (SimplifiedAST.Method) new SimplifiedAST.Method()
                 .setConstructor("<init>".equals(name))
@@ -69,10 +75,129 @@ public class SimplifiedASTContext {
                 .setAnnotations(loadAnnotations(method, generatedMethod));
     }
 
-    private List<SimplifiedAST.Element> readMethodParameters(ExecutableElement method ){
+    private List<SimplifiedAST.Element> extractMethodParameters(ExecutableElement method ){
         val parameters = method.getParameters();
+        return asParameterList(parameters);
+    }
+
+    private Type getCachedType( Element element ){
+        val typeElement = (TypeElement) element.getEnclosingElement();
+        return cachedTypes.computeIfAbsent(
+                typeElement.asType().toString(),
+                t -> createTypeFrom(t, typeElement));
+    }
+
+    private Type createTypeFrom(String canonicalName, TypeElement type) {
+        val newType = new SimplifiedAST.Type()
+                .setAbstract(isAbstract(type.getModifiers()))
+                .setInterface(type.getKind().equals(ElementKind.INTERFACE))
+                .setInterfaces(loadInterfacesFrom(type))
+                .setSuperclass(loadSuperclassFrom(type))
+                .setCanonicalName(canonicalName)
+                .setMethods(new ArrayList<>());
+        newType.setAnnotations( loadAnnotations(type, newType) );
+        memorizeConstructors(newType, type);
+        return newType;
+    }
+
+    private List<Type> loadInterfacesFrom(TypeElement type) {
+        val interfaces = new ArrayList<Type>();
+        for (val interfaceTypeMirror : type.getInterfaces()) {
+            val interfaceDeclaredType = (DeclaredType)interfaceTypeMirror;
+            val interfaceType = (TypeElement) interfaceDeclaredType.asElement();
+            val canonicalName = interfaceType.asType().toString();
+            interfaces.add(createTypeFrom(canonicalName, interfaceType));
+        }
+        return interfaces;
+    }
+
+    private Type loadSuperclassFrom(TypeElement type) {
+        val foundSuperclass = type.getSuperclass();
+
+        if (foundSuperclass.getKind() != TypeKind.NONE) {
+            val superclassTypeMirror = (DeclaredType)foundSuperclass;
+            val superclass = (TypeElement) superclassTypeMirror.asElement();
+            val canonicalName = superclass.asType().toString();
+            return createTypeFrom(canonicalName, superclass);
+        }
+
+        return null;
+    }
+
+    private boolean isAbstract(Set<Modifier> modifiers){
+        return modifiers.contains(ABSTRACT);
+    }
+
+    private void memorizeConstructors( Type newType, TypeElement type ){
+        val elements = type.getEnclosedElements();
+        for (val element : elements)
+            if (ElementKind.CONSTRUCTOR.equals(element.getKind()))
+                newType.methods.add(createMethod((ExecutableElement) element));
+
+        memorizeLombokConstructors(newType, type);
+    }
+
+    private void memorizeLombokConstructors(Type newType, TypeElement type) {
+        memorizeLombokRequiredArgConstructor(newType, type);
+        memorizeLombokAllArgConstructor(newType, type);
+        memorizeLombokNoArgConstructor(newType, type);
+    }
+
+    private void memorizeLombokRequiredArgConstructor(Type newType, TypeElement type){
+        val ann = type.getAnnotation(RequiredArgsConstructor.class);
+        if (ann != null) {
+            System.out.println(newType.canonicalName + " has RequiredArgsConstructor constructor");
+            val constructor = (SimplifiedAST.Method) new SimplifiedAST.Method()
+                    .setConstructor(true)
+                    .setParameters(extractRequiredFields(type))
+                    .setName("<init>");
+
+            newType.methods.add(constructor);
+        }
+    }
+
+    private List<SimplifiedAST.Element> extractRequiredFields(TypeElement type) {
+        return extractFields(type).stream()
+            .filter( it -> it.isFinal || it.getAnnotation(NonNull.class) != null )
+            .collect( Collectors.toList() );
+    }
+
+    private void memorizeLombokAllArgConstructor(Type newType, TypeElement type){
+        val ann = type.getAnnotation(AllArgsConstructor.class);
+        if (ann != null) {
+            System.out.println(newType.canonicalName + " has AllArgsConstructor constructor");
+            val constructor = (SimplifiedAST.Method) new SimplifiedAST.Method()
+                    .setConstructor(true)
+                    .setParameters(extractFields(type))
+                    .setName("<init>");
+
+            newType.methods.add(constructor);
+        }
+    }
+
+    private void memorizeLombokNoArgConstructor(Type newType, TypeElement type){
+        val ann = type.getAnnotation(NoArgsConstructor.class);
+        if (ann != null) {
+            System.out.println(newType.canonicalName + " has NoArgsConstructor constructor");
+            newType.methods.add((SimplifiedAST.Method)
+                new SimplifiedAST.Method()
+                    .setConstructor(true)
+                    .setName("<init>"));
+        }
+    }
+
+    private List<SimplifiedAST.Element> extractFields(TypeElement type) {
+        val fields = type.getEnclosedElements()
+            .stream()
+            .filter( it -> it.getKind() == ElementKind.FIELD )
+            .map( it -> (VariableElement)it )
+            .collect(Collectors.toList());
+        return asParameterList(fields);
+    }
+
+    private List<SimplifiedAST.Element> asParameterList(List<? extends VariableElement> variables){
         val newParameters = new ArrayList<SimplifiedAST.Element>();
-        for (val parameter : parameters)
+        for (val parameter : variables)
             newParameters.add(createParameter(parameter));
         return newParameters;
     }
@@ -81,7 +206,8 @@ public class SimplifiedASTContext {
         val typeCanonicalName = getCanonicalName(parameter);
         val param = new SimplifiedAST.Element()
                 .setName(parameter.getSimpleName().toString())
-                .setType(typeCanonicalName);
+                .setType(typeCanonicalName)
+                .setFinal(parameter.getModifiers().contains(FINAL));
 
         param.setAnnotations(loadAnnotations(parameter, param));
 
@@ -117,28 +243,5 @@ public class SimplifiedASTContext {
 
     private static String getCanonicalName(String simpleName) {
         return simpleName.replaceAll( "<.*", "" );
-    }
-
-    private Type getCachedType( Element element ){
-        val typeElement = (TypeElement) element.getEnclosingElement();
-        return cachedTypes.computeIfAbsent(
-                typeElement.asType().toString(),
-                t -> createTypeFrom(t, typeElement));
-    }
-
-    private Type createTypeFrom(String canonicalName, TypeElement type) {
-        val newType = new SimplifiedAST.Type()
-                .setCanonicalName(canonicalName)
-                .setMethods(new ArrayList<>());
-        newType.setAnnotations( loadAnnotations(type, newType) );
-        memorizeConstructors(newType, type);
-        return newType;
-    }
-
-    private void memorizeConstructors( Type newType, TypeElement type ){
-        val elements = type.getEnclosedElements();
-        for (val element : elements)
-            if (ElementKind.CONSTRUCTOR.equals(element.getKind()))
-                newType.methods.add(createMethod((ExecutableElement) element));
     }
 }

@@ -24,6 +24,22 @@ public interface SimplifiedAST {
         String canonicalName;
         List<Element> fields = new ArrayList<>();
         List<Method> methods = new ArrayList<>();
+        boolean isInterface;
+        boolean isAbstract;
+        
+        Type superclass;
+        List<Type> interfaces;
+        
+        public List<Type> getInheritedInterfaces() {
+            val interfaces = new ArrayList<Type>();
+            interfaces.addAll(getInterfaces());
+
+            val superclass = getSuperclass();
+            if (superclass != null)
+                interfaces.addAll(superclass.getInheritedInterfaces());
+            
+            return interfaces;
+        }
 
         public String getPackageName() {
             return canonicalName.replaceAll("(\\.[A-Z].*)", "");
@@ -87,6 +103,7 @@ public interface SimplifiedAST {
     class Element {
         String name;
         String type;
+        boolean isFinal = false;
         List<Annotation> annotations = new ArrayList<>();
 
         protected Annotation getAnnotation(Class<?> clazz) {
