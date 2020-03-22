@@ -26,10 +26,10 @@ public interface SimplifiedAST {
         List<Method> methods = new ArrayList<>();
         boolean isInterface;
         boolean isAbstract;
-        
+
         Type superclass;
-        List<Type> interfaces;
-        
+        List<Type> interfaces = new ArrayList<>();
+
         public List<Type> getInheritedInterfaces() {
             val interfaces = new ArrayList<Type>();
             interfaces.addAll(getInterfaces());
@@ -37,7 +37,7 @@ public interface SimplifiedAST {
             val superclass = getSuperclass();
             if (superclass != null)
                 interfaces.addAll(superclass.getInheritedInterfaces());
-            
+
             return interfaces;
         }
 
@@ -64,9 +64,9 @@ public interface SimplifiedAST {
             else
                 return "javax.annotation.Generated";
         }
-
+        
         public String toString() {
-            return "class " + canonicalName + "{\n\n" + stringify(methods, "\n\n") + "\n\n}";
+            return "class " + canonicalName + "(interfaces = [" + stringify(interfaces) + "], superclass = "+ superclass +")";
         }
     }
 
@@ -106,7 +106,7 @@ public interface SimplifiedAST {
         boolean isFinal = false;
         List<Annotation> annotations = new ArrayList<>();
 
-        protected Annotation getAnnotation(Class<?> clazz) {
+        public Annotation getAnnotation(Class<?> clazz) {
             for (Annotation ann : annotations)
                 if (clazz.getCanonicalName().equals(ann.type))
                     return ann;
@@ -164,6 +164,8 @@ public interface SimplifiedAST {
     }
 
     static String stringify(Iterable<?> iterable) {
+        if (iterable == null)
+            return "";
         return stringify(iterable, ", ");
     }
 

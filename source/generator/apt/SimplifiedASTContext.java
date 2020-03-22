@@ -146,11 +146,11 @@ public class SimplifiedASTContext {
     private void memorizeLombokRequiredArgConstructor(Type newType, TypeElement type){
         val ann = type.getAnnotation(RequiredArgsConstructor.class);
         if (ann != null) {
-            System.out.println(newType.canonicalName + " has RequiredArgsConstructor constructor");
             val constructor = (SimplifiedAST.Method) new SimplifiedAST.Method()
                     .setConstructor(true)
                     .setParameters(extractRequiredFields(type))
-                    .setName("<init>");
+                    .setName("<init>")
+                    .setType("void");
 
             newType.methods.add(constructor);
         }
@@ -165,11 +165,11 @@ public class SimplifiedASTContext {
     private void memorizeLombokAllArgConstructor(Type newType, TypeElement type){
         val ann = type.getAnnotation(AllArgsConstructor.class);
         if (ann != null) {
-            System.out.println(newType.canonicalName + " has AllArgsConstructor constructor");
             val constructor = (SimplifiedAST.Method) new SimplifiedAST.Method()
                     .setConstructor(true)
                     .setParameters(extractFields(type))
-                    .setName("<init>");
+                    .setName("<init>")
+                    .setType("void");
 
             newType.methods.add(constructor);
         }
@@ -178,11 +178,12 @@ public class SimplifiedASTContext {
     private void memorizeLombokNoArgConstructor(Type newType, TypeElement type){
         val ann = type.getAnnotation(NoArgsConstructor.class);
         if (ann != null) {
-            System.out.println(newType.canonicalName + " has NoArgsConstructor constructor");
             newType.methods.add((SimplifiedAST.Method)
                 new SimplifiedAST.Method()
                     .setConstructor(true)
-                    .setName("<init>"));
+                    .setName("<init>")
+                    .setType("void")
+            );
         }
     }
 
