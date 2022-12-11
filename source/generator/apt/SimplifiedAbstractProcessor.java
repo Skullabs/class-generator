@@ -75,6 +75,7 @@ public abstract class SimplifiedAbstractProcessor extends AbstractProcessor {
     }
 
     private void memorizeTypeAndItsMembers( TypeElement e ){
+        context.memorizeType(e);
         for (Element element : e.getEnclosedElements()) {
             if ( element.getKind().equals(ElementKind.FIELD) )
                 context.memorizeField( (VariableElement)element );

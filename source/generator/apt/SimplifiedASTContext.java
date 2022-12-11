@@ -82,6 +82,10 @@ public class SimplifiedASTContext {
 
     private Type getCachedType( Element element ){
         val typeElement = (TypeElement) element.getEnclosingElement();
+        return memorizeType(typeElement);
+    }
+
+    public Type memorizeType( TypeElement typeElement ) {
         return cachedTypes.computeIfAbsent(
                 typeElement.asType().toString(),
                 t -> createTypeFrom(t, typeElement));
